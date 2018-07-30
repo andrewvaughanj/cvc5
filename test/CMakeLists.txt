@@ -34,3 +34,8 @@ if(ENABLE_UNIT_TESTING)
     add_subdirectory(java)
   endif()
 endif()
+
+
+if(BUILD_BINDINGS_PYTHON)
+  add_subdirectory(python)
+endif()
