@@ -350,6 +350,8 @@ class FpConverter
   /* Creates the relevant components for a variable */
   uf buildComponents(TNode current);
 #endif
+
+  void test_round_trip(void);
 };
 
 }  // namespace fp

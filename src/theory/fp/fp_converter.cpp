@@ -858,6 +858,15 @@ Node FpConverter::convert(TNode node)
 
   NodeManager *nm = NodeManager::currentNM();
 
+  /* call the test to validate round-tripping a term */
+  static bool do_round_trip(true);
+
+  if (do_round_trip)
+  {
+    do_round_trip = false;
+    test_round_trip();
+  }
+
   while (!workStack.empty())
   {
     TNode current = workStack.back();
@@ -1737,6 +1746,62 @@ Node FpConverter::getValue(Valuation &val, TNode var)
 #else
   Unimplemented() << "Conversion is dependent on SymFPU";
 #endif
+}
+
+void FpConverter::test_round_trip(void)
+{
+  /* prints so we know the code is being called */
+  std::cerr << "Testing pack/unpack" << std::endl;
+
+  /* what's the size of our FPs? (*/
+  uint32_t exp_bits(8);
+  uint32_t sig_bits(24);
+  uint32_t size(exp_bits + sig_bits);
+
+  /* grab the manager */
+  NodeManager* nm(NodeManager::currentNM());
+
+  /* create a BV type of the right size */
+  TypeNode bv(nm->mkBitVectorType(size));
+
+  /* create our 'intermediate' var */
+  Node var(nm->mkVar("fake_fp_bv", bv));
+
+  /* unpack our intermediate var */
+  uf unpacked(symfpu::unpack<traits>(fpt(exp_bits, sig_bits), var));
+
+  /* immediately repack our uf */
+  Node packed(symfpu::pack<traits>(fpt(exp_bits, sig_bits), unpacked));
+
+  /* we want to compare our packed expr against the original input */
+  Node comp(
+      NodeManager::currentNM()->mkNode(kind::BITVECTOR_COMP, packed, var));
+
+  /* we want an assign where packed != var */
+  Node not_n(NodeManager::currentNM()->mkNode(kind::BITVECTOR_NOT, comp));
+
+  /* add it as an additional assertion */
+  d_additionalAssertions.push_back(not_n);
+
+  /* THIS SHOULD GIVE UNSAT -- it doesn't! */
+
+  /* quick test to validate that we can give unsat via d_additionalAssertions */
+  const bool check_unsat_possible(false);
+  if (check_unsat_possible)
+  {
+    /* compare var against var */
+    Node var_eq_var(
+        NodeManager::currentNM()->mkNode(kind::BITVECTOR_COMP, var, var));
+
+    /* Negate */
+    Node var_not_eq(
+        NodeManager::currentNM()->mkNode(kind::BITVECTOR_NOT, var_eq_var));
+
+    /* add it as an additional assertion */
+    d_additionalAssertions.push_back(var_not_eq);
+
+    /* this *does* give UNSAT! */
+  }
 }
 
 }  // namespace fp

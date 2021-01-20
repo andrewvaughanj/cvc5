@@ -366,6 +366,7 @@ class NodeManager {
 
   void init();
 
+ public: /* AVJ change to allow me to create new vars */
   /**
    * Create a variable with the given name and type.  NOTE that no
    * lookup is done on the name.  If you mkVar("a", type) and then
