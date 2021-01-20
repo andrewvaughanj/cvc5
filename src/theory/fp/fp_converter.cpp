@@ -1765,20 +1765,22 @@ void FpConverter::test_round_trip(void)
   TypeNode bv(nm->mkBitVectorType(size));
 
   /* create our 'intermediate' var */
-  Node var(nm->mkVar("fake_fp_bv", bv));
+  Node var(nm->mkSkolem("fake_fp_bv", bv));
+
+  /* create our floating point type */
+  fpt fp_type(exp_bits, sig_bits);
 
   /* unpack our intermediate var */
-  uf unpacked(symfpu::unpack<traits>(fpt(exp_bits, sig_bits), var));
+  uf unpacked(symfpu::unpack<traits>(fp_type, var));
 
   /* immediately repack our uf */
-  Node packed(symfpu::pack<traits>(fpt(exp_bits, sig_bits), unpacked));
+  Node packed(symfpu::pack<traits>(fp_type, unpacked));
 
   /* we want to compare our packed expr against the original input */
-  Node comp(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_COMP, packed, var));
+  Node comp(nm->mkNode(kind::BITVECTOR_COMP, packed, var));
 
   /* we want an assign where packed != var */
-  Node not_n(NodeManager::currentNM()->mkNode(kind::BITVECTOR_NOT, comp));
+  Node not_n(nm->mkNode(kind::BITVECTOR_NOT, comp));
 
   /* add it as an additional assertion */
   d_additionalAssertions.push_back(not_n);
@@ -1790,12 +1792,10 @@ void FpConverter::test_round_trip(void)
   if (check_unsat_possible)
   {
     /* compare var against var */
-    Node var_eq_var(
-        NodeManager::currentNM()->mkNode(kind::BITVECTOR_COMP, var, var));
+    Node var_eq_var(nm->mkNode(kind::BITVECTOR_COMP, var, var));
 
     /* Negate */
-    Node var_not_eq(
-        NodeManager::currentNM()->mkNode(kind::BITVECTOR_NOT, var_eq_var));
+    Node var_not_eq(nm->mkNode(kind::BITVECTOR_NOT, var_eq_var));
 
     /* add it as an additional assertion */
     d_additionalAssertions.push_back(var_not_eq);
