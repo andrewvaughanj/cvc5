@@ -74,7 +74,7 @@ class ApproximateSimplex{
   static bool enabled();
 
   /**
-   * If GLPK is enabled, creates a GPLK-based approxmimating solver.
+   * If GLPK is enabled, creates a GPLK-based approximating solver.
    */
   static ApproximateSimplex* mkApproximateSimplexSolver(const ArithVariables& vars, TreeLog& l, ApproximateStatistics& s);
 

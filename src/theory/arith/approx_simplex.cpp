@@ -143,45 +143,6 @@ class MirInfo;
 class BranchCutInfo;
 
 class ApproxGLPK : public ApproximateSimplex {
-private:
- const ArithVariables& d_vars;
- TreeLog& d_log;
- ApproximateStatistics& d_stats;
-
- /* the maximum pivots allowed in a query. */
- int d_pivotLimit;
-
- /* maximum branches allowed on a variable */
- int d_branchLimit;
-
- /* maxmimum branching depth allowed.*/
- int d_maxDepth;
-
- /* Default denominator for diophatine approximation, 2^{26} .*/
- static Integer s_defaultMaxDenom;
-
- glp_prob* d_inputProb; /* a copy of the input prob */
- glp_prob* d_realProb;  /* a copy of the real relaxation output */
- glp_prob* d_mipProb;   /* a copy of the integer prob */
-
- DenseMap<int> d_colIndices;
- DenseMap<int> d_rowIndices;
-
- NodeLog::RowIdMap d_rootRowIds;
- // DenseMap<ArithVar> d_rowToArithVar;
- DenseMap<ArithVar> d_colToArithVar;
-
- int d_instanceID;
-
- bool d_solvedRelaxation;
- bool d_solvedMIP;
-
- static int s_verbosity;
-
- CutScratchPad d_pad;
-
- std::vector<Integer> d_denomGuesses;
-
 public:
   ApproxGLPK(const ArithVariables& v, TreeLog& l, ApproximateStatistics& s);
   ~ApproxGLPK();
@@ -324,6 +285,45 @@ public:
 
   /** Estimates a rational as a continued fraction expansion.*/
   static Rational estimateWithCFE(const Rational& q, const Integer& K);
+
+ private:
+  const ArithVariables& d_vars;
+  TreeLog& d_log;
+  ApproximateStatistics& d_stats;
+
+  /* the maximum pivots allowed in a query. */
+  int d_pivotLimit;
+
+  /* maximum branches allowed on a variable */
+  int d_branchLimit;
+
+  /* maxmimum branching depth allowed.*/
+  int d_maxDepth;
+
+  /* Default denominator for diophatine approximation, 2^{26} .*/
+  static Integer s_defaultMaxDenom;
+
+  glp_prob* d_inputProb; /* a copy of the input prob */
+  glp_prob* d_realProb;  /* a copy of the real relaxation output */
+  glp_prob* d_mipProb;   /* a copy of the integer prob */
+
+  DenseMap<int> d_colIndices;
+  DenseMap<int> d_rowIndices;
+
+  NodeLog::RowIdMap d_rootRowIds;
+  // DenseMap<ArithVar> d_rowToArithVar;
+  DenseMap<ArithVar> d_colToArithVar;
+
+  int d_instanceID;
+
+  bool d_solvedRelaxation;
+  bool d_solvedMIP;
+
+  static int s_verbosity;
+
+  CutScratchPad d_pad;
+
+  std::vector<Integer> d_denomGuesses;
 };
 
 Integer ApproxGLPK::s_defaultMaxDenom(1 << 26);
@@ -1729,23 +1729,6 @@ MipResult ApproxGLPK::solveMIP(bool activelyLog){
   }
 }
 
-// Node explainSet(const set<ConstraintP>& inp){
-//   Assert(!inp.empty());
-//   NodeBuilder nb(kind::AND);
-//   set<ConstraintP>::const_iterator iter, end;
-//   for(iter = inp.begin(), end = inp.end(); iter != end; ++iter){
-//     const ConstraintP c = *iter;
-//     Assert(c != NullConstraint);
-//     c->explainForConflict(nb);
-//   }
-//   Node ret = safeConstructNary(nb);
-//   Node rew = Rewriter::rewrite(ret);
-//   if(rew.getNumChildren() < ret.getNumChildren()){
-//     //Debug("approx::") << "explainSet " << ret << " " << rew << std::endl;
-//   }
-//   return rew;
-// }
-
 DeltaRational sumConstraints(const DenseMap<Rational>& xs, const DenseMap<ConstraintP>& cs, bool* anyinf){
   if(anyinf != NULL){
     *anyinf = false;
@@ -2880,12 +2863,10 @@ bool ApproxGLPK::gaussianElimConstructTableRow(int nid, int M, const PrimitiveVe
       // 0 = q * s + sum c_i * x_i
       Rational mult = -(q.inverse());
       Debug("gaussianElimConstructTableRow")
-          << "selecting " << s << " : " << mult << std::endl;
+          << "selecting " << s << " : complexity " << mult.complexity() << " "
+          << mult << std::endl;
       Debug("gaussianElimConstructTableRow")
           << "selecting " << rid << " " << s << std::endl;
-      // cout << "selecting " << s << " : complexity " << mult.complexity() << "
-      // " << mult << std::endl; cout << "selecting " << rid << " " << s <<
-      // std::endl;
       A.multiplyRowByConstant(rid, mult);
       rows[i].second = s;
     }
