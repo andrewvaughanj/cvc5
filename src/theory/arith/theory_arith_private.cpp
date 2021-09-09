@@ -1833,14 +1833,10 @@ void TheoryArithPrivate::outputRestart() {
 
 bool TheoryArithPrivate::attemptSolveInteger(Theory::Effort effortLevel, bool emmmittedLemmaOrSplit){
   int level = context()->getLevel();
-  Debug("approx")
-    << "attemptSolveInteger " << d_qflraStatus
-    << " " << emmmittedLemmaOrSplit
-    << " " << effortLevel
-    << " " << d_lastContextIntegerAttempted
-    << " " << level
-    << " " << hasIntegerModel()
-    << endl;
+  Trace("approx") << "attemptSolveInteger " << d_qflraStatus << " "
+                  << emmmittedLemmaOrSplit << " " << effortLevel << " "
+                  << d_lastContextIntegerAttempted << " " << level << " "
+                  << hasIntegerModel() << endl;
 
   if(d_qflraStatus == Result::UNSAT){ return false; }
   if(emmmittedLemmaOrSplit){ return false; }
@@ -1921,9 +1917,10 @@ bool TheoryArithPrivate::replayLog(ApproximateSimplex* approx){
           vec.pop_back();
           ConstraintP neg_at_j = at_j->getNegation();
 
-          Debug("approx::replayLog") << "Setting the proof for the replayLog conflict on:" << endl
-                                     << "  (" << neg_at_j->isTrue() <<") " << neg_at_j << endl
-                                     << "  (" << at_j->isTrue() <<") " << at_j << endl;
+          Trace("approx::replayLog")
+              << "Setting the proof for the replayLog conflict on:" << endl
+              << "  (" << neg_at_j->isTrue() << ") " << neg_at_j << endl
+              << "  (" << at_j->isTrue() << ") " << at_j << endl;
           neg_at_j->impliedByIntHole(vec, true);
           raiseConflict(at_j, InferenceId::UNKNOWN);
           break;
@@ -1954,10 +1951,8 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
   Node sum = toSumNode(d_partialModel, lhs);
   if(sum.isNull()){ return make_pair(NullConstraint, added); }
 
-  Debug("approx::constraint") << "replayGetConstraint " << sum
-                              << " " << k
-                              << " " << rhs
-                              << endl;
+  Trace("approx::constraint")
+      << "replayGetConstraint " << sum << " " << k << " " << rhs << endl;
 
   Assert(k == kind::LEQ || k == kind::GEQ);
 
@@ -1978,15 +1973,16 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
   ConstraintType t = Constraint::constraintTypeOfComparison(cmp);
   DeltaRational dr = cmp.normalizedDeltaRational();
 
-  Debug("approx::constraint") << "rewriting " << rewritten << endl
-                              << " |-> " << norm << " " << t << " " << dr << endl;
+  Trace("approx::constraint")
+      << "rewriting " << rewritten << endl
+      << " |-> " << norm << " " << t << " " << dr << endl;
 
   Assert(!branch || d_partialModel.hasArithVar(norm));
   ArithVar v = ARITHVAR_SENTINEL;
   if(d_partialModel.hasArithVar(norm)){
 
     v = d_partialModel.asArithVar(norm);
-    Debug("approx::constraint")
+    Trace("approx::constraint")
         << "replayGetConstraint found " << norm << " |-> " << v << " @ "
         << context()->getLevel() << endl;
     Assert(!branch || d_partialModel.isIntegerInput(v));
@@ -1996,7 +1992,7 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
 
     added = v;
 
-    Debug("approx::constraint")
+    Trace("approx::constraint")
         << "replayGetConstraint adding " << norm << " |-> " << v << " @ "
         << context()->getLevel() << endl;
 
@@ -2119,7 +2115,7 @@ void TheoryArithPrivate::tryBranchCut(ApproximateSimplex* approx, int nid, Branc
   std::vector< ConstraintCPVec > conflicts;
 
   approx->tryCut(nid, bci);
-  Debug("approx::branch") << "tryBranchCut" << bci << endl;
+  Trace("approx::branch") << "tryBranchCut" << bci << endl;
   Assert(bci.reconstructed());
   Assert(!bci.proven());
   pair<ConstraintP, ArithVar> p = replayGetConstraint(bci);
@@ -2177,19 +2173,19 @@ void TheoryArithPrivate::tryBranchCut(ApproximateSimplex* approx, int nid, Branc
     }
   }
 
-  Debug("approx::branch") << "branch constraint " << bc << endl;
+  Trace("approx::branch") << "branch constraint " << bc << endl;
   for(size_t i = 0, N = conflicts.size(); i < N; ++i){
     ConstraintCPVec& conf = conflicts[i];
 
     // make sure to be working on the assertion fringe!
     if(!contains(conf, bcneg)){
-      Debug("approx::branch") << "reraise " << conf  << endl;
+      Trace("approx::branch") << "reraise " << conf << endl;
       ConstraintCP conflicting = vectorToIntHoleConflict(conf);
       raiseConflict(conflicting, InferenceId::UNKNOWN);
     }else if(!bci.proven()){
       drop(conf, bcneg);
       bci.setExplanation(conf);
-      Debug("approx::branch") << "dropped " << bci  << endl;
+      Trace("approx::branch") << "dropped " << bci << endl;
     }
   }
 }
@@ -2199,18 +2195,20 @@ void TheoryArithPrivate::replayAssert(ConstraintP c) {
     bool inConflict = c->negationHasProof();
     if(!c->hasProof()){
       c->setInternalAssumption(inConflict);
-      Debug("approx::replayAssert") << "replayAssert " << c << " set internal" << endl;
+      Trace("approx::replayAssert")
+          << "replayAssert " << c << " set internal" << endl;
     }else{
-      Debug("approx::replayAssert") << "replayAssert " << c << " has explanation" << endl;
+      Trace("approx::replayAssert")
+          << "replayAssert " << c << " has explanation" << endl;
     }
-    Debug("approx::replayAssert") << "replayAssertion " << c << endl;
+    Trace("approx::replayAssert") << "replayAssertion " << c << endl;
     if(inConflict){
       raiseConflict(c, InferenceId::UNKNOWN);
     }else{
       assertionCases(c);
     }
   }else{
-    Debug("approx::replayAssert")
+    Trace("approx::replayAssert")
         << "replayAssert " << c << " already asserted" << endl;
   }
 }
@@ -2270,7 +2268,7 @@ void TheoryArithPrivate::subsumption(
 
 std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex* approx, int nid, ConstraintP bc, int depth){
   ++(d_statistics.d_replayLogRecCount);
-  Debug("approx::replayLogRec") << "replayLogRec()" << std::endl;
+  Trace("approx::replayLogRec") << "replayLogRec()" << std::endl;
 
   size_t rpvars_size = d_replayVariables.size();
   size_t rpcons_size = d_replayConstraints.size();
@@ -2337,7 +2335,8 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
           }
           ConstraintP con = p.first;
           if(Debug.isOn("approx::replayLogRec")){
-            Debug("approx::replayLogRec") << "cut was remade " << con << " " << *ci << endl;
+            Trace("approx::replayLogRec")
+                << "cut was remade " << con << " " << *ci << endl;
           }
 
           if(ci->proven()){
@@ -2346,19 +2345,21 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
             const ConstraintCPVec& exp = ci->getExplanation();
             // success
             if(con->isTrue()){
-              Debug("approx::replayLogRec") << "not asserted?" << endl;
+              Trace("approx::replayLogRec") << "not asserted?" << endl;
             }else if(!con->negationHasProof()){
               con->impliedByIntHole(exp, false);
               replayAssert(con);
-              Debug("approx::replayLogRec") << "cut prop" << endl;
+              Trace("approx::replayLogRec") << "cut prop" << endl;
             }else {
               con->impliedByIntHole(exp, true);
-              Debug("approx::replayLogRec") << "cut into conflict " << con << endl;
+              Trace("approx::replayLogRec")
+                  << "cut into conflict " << con << endl;
               raiseConflict(con, InferenceId::UNKNOWN);
             }
           }else{
             ++d_statistics.d_cutsProofFailed;
-            Debug("approx::replayLogRec") << "failed to get proof " << *ci << endl;
+            Trace("approx::replayLogRec")
+                << "failed to get proof " << *ci << endl;
           }
         }else if(ci->getKlass() != RowsDeletedKlass){
           ++d_statistics.d_cutsReconstructionFailed;
@@ -2427,7 +2428,8 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
             }
           }
         }else{
-          Debug("approx::replayLogRec") << "replayLogRec() skipping" << dnlog << std::endl;
+          Trace("approx::replayLogRec")
+              << "replayLogRec() skipping" << dnlog << std::endl;
           ++d_statistics.d_replayBranchSkips;
         }
 
@@ -2443,7 +2445,8 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
             }
           }
         }else{
-          Debug("approx::replayLogRec") << "replayLogRec() skipping" << uplog << std::endl;
+          Trace("approx::replayLogRec")
+              << "replayLogRec() skipping" << uplog << std::endl;
           ++d_statistics.d_replayBranchSkips;
         }
 
@@ -2466,23 +2469,26 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
             }
           }
         }else{
-          Debug("approx::replayLogRec") << "replayLogRec() skipping resolving" << nl << std::endl;
+          Trace("approx::replayLogRec")
+              << "replayLogRec() skipping resolving" << nl << std::endl;
         }
-        Debug("approx::replayLogRec") << "found #"<<res.size()<<" conflicts on branch " << nid << endl;
+        Trace("approx::replayLogRec") << "found #" << res.size()
+                                      << " conflicts on branch " << nid << endl;
         if(res.empty()){
           ++d_statistics.d_replayBranchCloseFailures;
         }
 
       }else{
-        Debug("approx::replayLogRec") << "failed to make a branch " << nid << endl;
+        Trace("approx::replayLogRec")
+            << "failed to make a branch " << nid << endl;
       }
     }else{
       ++d_statistics.d_replayLeafCloseFailures;
-      Debug("approx::replayLogRec") << "failed on node " << nid << endl;
+      Trace("approx::replayLogRec") << "failed on node " << nid << endl;
       Assert(res.empty());
     }
     resolveOutPropagated(res, propagated);
-    Debug("approx::replayLogRec") << "replayLogRec() ending" << std::endl;
+    Trace("approx::replayLogRec") << "replayLogRec() ending" << std::endl;
 
     if (options().arith.replayFailureLemma)
     {
@@ -2548,7 +2554,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
       d_tableau.removeBasicRow(v);
 
       releaseArithVar(v);
-      Debug("approx::vars") << "releasing " << v << endl;
+      Trace("approx::vars") << "releasing " << v << endl;
     }
     d_linEq.stopTrackingBoundCounts();
     d_partialModel.startQueueingBoundCounts();
@@ -2645,7 +2651,7 @@ bool TheoryArithPrivate::replayLemmas(ApproximateSimplex* approx){
         // DO NOT CALL OUTPUT LEMMA!
         // TODO (project #37): justify
         d_approxCuts.push_back(TrustNode::mkTrustLemma(implication, nullptr));
-        Debug("approx::lemmas") << "cut["<<i<<"] " << implication << endl;
+        Trace("approx::lemmas") << "cut[" << i << "] " << implication << endl;
         ++(d_statistics.d_mipExternalCuts);
       }
     }
@@ -2663,7 +2669,8 @@ bool TheoryArithPrivate::replayLemmas(ApproximateSimplex* approx){
           d_approxCuts.push_back(TrustNode::mkTrustLemma(branch, nullptr));
         }
         ++(d_statistics.d_mipExternalBranch);
-        Debug("approx::lemmas") << "branching "<< root <<" as " << branch << endl;
+        Trace("approx::lemmas")
+            << "branching " << root << " as " << branch << endl;
       }
     }
     return anythingnew;
