@@ -1335,7 +1335,8 @@ static MirInfo* mirCut(glp_tree *tree, int exec_ord, int cut_ord){
   glp_ios_cut_get_mir_subst(tree, cut_ord, mir->subst);
   glp_ios_cut_get_mir_virtual_rows(tree, cut_ord, mir->vlbRows, mir->vubRows);
 
-  if(Debug.isOn("approx::mirCut")){
+  if (Trace.isOn("approx::mirCut"))
+  {
     Trace("approx::mirCut") << "mir_id: " << exec_ord << std::endl;
     row_sum.print(Trace("approx::mirCut"));
   }
@@ -1417,7 +1418,8 @@ static GmiInfo* gmiCut(glp_tree *tree, int exec_ord, int cut_ord){
     }
   }
 
-  if(Debug.isOn("approx::gmiCut")){
+  if (Trace.isOn("approx::gmiCut"))
+  {
     gmi->print(Trace("approx::gmiCut"));
   }
   return gmi;
@@ -1931,7 +1933,8 @@ bool ApproxGLPK::checkCutOnPad(int nid, const CutInfo& cut) const{
 
 
     if(!constructedLhs.isKey(x)){
-      if(Debug.isOn("approx::checkCutOnPad")){
+      if (Trace.isOn("approx::checkCutOnPad"))
+      {
         Trace("approx::checkCutOnPad")
             << " didn't find key for " << x << std::endl;
         cut.print(Trace("approx::checkCutOnPad"));
@@ -2510,14 +2513,15 @@ bool ApproxGLPK::loadRowSumIntoAgg(int nid, int M, const PrimitiveVec& row_sum){
   }
 
   Trace("approx::mir") << "beg loadRowSumIntoAgg() 1" << std::endl;
-  if (Debug.isOn("approx::mir"))
+  if (Trace.isOn("approx::mir"))
   {
     DenseVector::print(Trace("approx::mir"), lhs);
   }
   removeAuxillaryVariables(d_vars, lhs);
   Trace("approx::mir") << "end loadRowSumIntoAgg() 1" << std::endl;
 
-  if(Debug.isOn("approx::mir")){
+  if (Trace.isOn("approx::mir"))
+  {
     Trace("approx::mir") << "loadRowSumIntoAgg() 2" << std::endl;
     DenseVector::print(Trace("approx::mir"), lhs);
     Trace("approx::mir") << "end loadRowSumIntoAgg() 2" << std::endl;
@@ -2537,7 +2541,8 @@ bool ApproxGLPK::loadRowSumIntoAgg(int nid, int M, const PrimitiveVec& row_sum){
     lhs.set(x, *c);
   }
 
-  if(Debug.isOn("approx::mir")){
+  if (Trace.isOn("approx::mir"))
+  {
     Trace("approx::mir") << "loadRowSumIntoAgg() 2" << std::endl;
     DenseVector::print(Trace("approx::mir"), lhs);
     Trace("approx::mir") << "end loadRowSumIntoAgg() 3" << std::endl;
@@ -3092,21 +3097,24 @@ bool ApproxGLPK::constructGmiCut(){
       }
     }
   }
-  if(Debug.isOn("approx::gmi")){
+  if (Trace.isOn("approx::gmi"))
+  {
     Trace("approx::gmi") << "pre removeSlackVariables";
     d_pad.d_cut.print(Trace("approx::gmi"));
     Trace("approx::gmi") << std::endl;
   }
   removeAuxillaryVariables(d_vars, cut);
 
-  if(Debug.isOn("approx::gmi")){
+  if (Trace.isOn("approx::gmi"))
+  {
     Trace("approx::gmi") << "post removeAuxillaryVariables";
     d_pad.d_cut.print(Trace("approx::gmi"));
     Trace("approx::gmi") << std::endl;
   }
   removeFixed(d_vars, d_pad.d_cut, explanation);
 
-  if(Debug.isOn("approx::gmi")){
+  if (Trace.isOn("approx::gmi"))
+  {
     Trace("approx::gmi") << "post removeFixed";
     d_pad.d_cut.print(Trace("approx::gmi"));
     Trace("approx::gmi") << std::endl;

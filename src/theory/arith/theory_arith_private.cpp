@@ -2166,7 +2166,8 @@ void TheoryArithPrivate::tryBranchCut(ApproximateSimplex* approx, int nid, Branc
       // Constraint::assertionFringe(back);
     }
 
-    if(Debug.isOn("approx::branch")){
+    if (Trace.isOn("approx::branch"))
+    {
       if(d_conflicts.empty()){
         entireStateIsConsistent("branchfailure");
       }
@@ -2334,10 +2335,8 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
             tl.mapRowId(nl.getNodeId(), ci->getRowId(), p.second);
           }
           ConstraintP con = p.first;
-          if(Debug.isOn("approx::replayLogRec")){
-            Trace("approx::replayLogRec")
-                << "cut was remade " << con << " " << *ci << endl;
-          }
+          Trace("approx::replayLogRec")
+              << "cut was remade " << con << " " << *ci << endl;
 
           if(ci->proven()){
             ++d_statistics.d_cutsProven;
