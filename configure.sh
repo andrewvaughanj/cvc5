@@ -330,6 +330,7 @@ fi
 # Because 'MSYS Makefiles' has a space in it, we set the variable vs. adding to 'cmake_opts'
 [ $win64_native != default ] \
   && [ $ninja == default ] && export CMAKE_GENERATOR="MSYS Makefiles"
+  && cmake_opts="$cmake_opts -DPYTHON_EXECUTABLE:PATH=$(which python.exe)"
 [ $arm64 != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-aarch64.cmake"
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
